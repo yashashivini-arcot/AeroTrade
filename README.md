@@ -1,5 +1,8 @@
 # 📈 AeroTrade: Premium Stock Trading Simulation Terminal
 
+> [!NOTE]
+> **Project Status**: This project is ongoing. New features will be added and changes can be made as development progresses.
+
 AeroTrade is a feature-rich, high-performance web application designed to simulate stock market trading in real-time. Built with a MERN stack, the application includes advanced charting, real-time news aggregation, automated portfolio tracking, and an administrative portal for platform control.
 
 ---
