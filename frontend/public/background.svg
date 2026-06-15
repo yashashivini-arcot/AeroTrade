@@ -1,0 +1,93 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1000" viewBox="0 0 1600 1000">
+  <defs>
+    <!-- Radial Orange Glow inside the SVG to add secondary depth -->
+    <radialGradient id="orangeGlow" cx="15%" cy="20%" r="40%">
+      <stop offset="0%" stop-color="#FF8C00" stop-opacity="0.15"/>
+      <stop offset="100%" stop-color="#0B0B0D" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="cornerGlow" cx="85%" cy="80%" r="50%">
+      <stop offset="0%" stop-color="#FF8C00" stop-opacity="0.12"/>
+      <stop offset="100%" stop-color="#0B0B0D" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <!-- Ambient Glow Layers -->
+  <rect width="100%" height="100%" fill="url(#orangeGlow)"/>
+  <rect width="100%" height="100%" fill="url(#cornerGlow)"/>
+
+  <!-- Trading Grid System (TradingView style coordinate lines) -->
+  <g stroke="rgba(255, 140, 0, 0.08)" stroke-width="1">
+    <!-- Horizontal Coordinates -->
+    <line x1="0" y1="150" x2="1600" y2="150" stroke-dasharray="4,4" />
+    <line x1="0" y1="300" x2="1600" y2="300" stroke-dasharray="4,4" />
+    <line x1="0" y1="450" x2="1600" y2="450" stroke-dasharray="4,4" />
+    <line x1="0" y1="600" x2="1600" y2="600" stroke-dasharray="4,4" />
+    <line x1="0" y1="750" x2="1600" y2="750" stroke-dasharray="4,4" />
+    <line x1="0" y1="900" x2="1600" y2="900" stroke-dasharray="4,4" />
+
+    <!-- Vertical Coordinates -->
+    <line x1="200" y1="0" x2="200" y2="1000" stroke-dasharray="4,4" />
+    <line x1="400" y1="0" x2="400" y2="1000" stroke-dasharray="4,4" />
+    <line x1="600" y1="0" x2="600" y2="1000" stroke-dasharray="4,4" />
+    <line x1="800" y1="0" x2="800" y2="1000" stroke-dasharray="4,4" />
+    <line x1="1000" y1="0" x2="1000" y2="1000" stroke-dasharray="4,4" />
+    <line x1="1200" y1="0" x2="1200" y2="1000" stroke-dasharray="4,4" />
+    <line x1="1400" y1="0" x2="1400" y2="1000" stroke-dasharray="4,4" />
+  </g>
+
+  <!-- Large Stock Market Line Charts (Diagonal Curves) -->
+  <!-- Main Orange Trend Line -->
+  <path d="M-50,750 Q250,550 450,620 T950,450 T1350,500 T1650,380" fill="none" stroke="#FF8C00" stroke-opacity="0.25" stroke-width="3" />
+  
+  <!-- Secondary Green Trend Line -->
+  <path d="M-50,580 Q300,420 600,500 T1100,280 T1650,320" fill="none" stroke="#10b981" stroke-opacity="0.18" stroke-width="2" />
+  
+  <!-- Third Red Trend Line -->
+  <path d="M-50,400 Q200,280 450,330 T950,180 T1450,220 T1650,140" fill="none" stroke="#ef4444" stroke-opacity="0.15" stroke-width="1.5" />
+
+  <!-- Candlestick Chart Silhouettes -->
+  <!-- Candle Set 1 (Green/Ascending) -->
+  <g stroke="#10b981" stroke-opacity="0.22" stroke-width="1.5">
+    <!-- Candle 1 -->
+    <line x1="250" y1="520" x2="250" y2="610" />
+    <rect x="244" y="540" width="12" height="50" fill="#10b981" fill-opacity="0.12" />
+    <!-- Candle 2 -->
+    <line x1="330" y1="460" x2="330" y2="540" />
+    <rect x="324" y="480" width="12" height="40" fill="#10b981" fill-opacity="0.12" />
+    <!-- Candle 3 -->
+    <line x1="410" y1="390" x2="410" y2="480" />
+    <rect x="404" y="410" width="12" height="50" fill="#10b981" fill-opacity="0.12" />
+  </g>
+
+  <!-- Candle Set 2 (Red/Descending) -->
+  <g stroke="#ef4444" stroke-opacity="0.22" stroke-width="1.5">
+    <!-- Candle 1 -->
+    <line x1="680" y1="450" x2="680" y2="530" />
+    <rect x="674" y="470" width="12" height="45" fill="#ef4444" fill-opacity="0.12" />
+    <!-- Candle 2 -->
+    <line x1="760" y1="490" x2="760" y2="580" />
+    <rect x="754" y="510" width="12" height="50" fill="#ef4444" fill-opacity="0.12" />
+  </g>
+
+  <!-- Candle Set 3 (Orange/Fluctuating) -->
+  <g stroke="#FF8C00" stroke-opacity="0.22" stroke-width="1.5">
+    <!-- Candle 1 -->
+    <line x1="1020" y1="330" x2="1020" y2="400" />
+    <rect x="1014" y="345" width="12" height="40" fill="#FF8C00" fill-opacity="0.12" />
+    <!-- Candle 2 -->
+    <line x1="1100" y1="280" x2="1100" y2="350" />
+    <rect x="1094" y="295" width="12" height="40" fill="#FF8C00" fill-opacity="0.12" />
+    <!-- Candle 3 -->
+    <line x1="1180" y1="220" x2="1180" y2="310" />
+    <rect x="1174" y="240" width="12" height="50" fill="#FF8C00" fill-opacity="0.12" />
+  </g>
+
+  <!-- Scatter data nodes (Trading hubs) -->
+  <g fill-opacity="0.3" stroke-width="1.5">
+    <circle cx="450" cy="620" r="5" fill="#FF8C00" stroke="#FF8C00" stroke-opacity="0.5" />
+    <circle cx="950" cy="450" r="5" fill="#FF8C00" stroke="#FF8C00" stroke-opacity="0.5" />
+    <circle cx="600" cy="500" r="4.5" fill="#10b981" stroke="#10b981" stroke-opacity="0.4" />
+    <circle cx="1100" cy="280" r="4.5" fill="#10b981" stroke="#10b981" stroke-opacity="0.4" />
+    <circle cx="950" cy="180" r="4" fill="#ef4444" stroke="#ef4444" stroke-opacity="0.4" />
+  </g>
+</svg>
