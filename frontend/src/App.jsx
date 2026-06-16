@@ -1,3 +1,4 @@
+/* eslint-disable */
 import { useState, useEffect, useRef } from 'react';
 import './App.css';
 
@@ -87,12 +88,16 @@ function App() {
   const [user, setUser] = useState(null);
   const [authTab, setAuthTab] = useState('login');
   const [authError, setAuthError] = useState('');
+  const [authSuccess, setAuthSuccess] = useState('');
   
   // Auth Form State
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+
+  // Validation States
+  const [touched, setTouched] = useState({});
 
   // Trading & Data State
   const [stocks, setStocks] = useState([]);
@@ -107,15 +112,105 @@ function App() {
   const [selectedSector, setSelectedSector] = useState('All');
 
   // Trade Modal State
-  const [selectedStockId, setSelectedStockId] = useState(null);
+  const [selectedStockId, setSelectedStockId] = useState(
+    localStorage.getItem('selectedStockId') || null
+  );
   const selectedStock = stocks.find(s => s._id === selectedStockId) || (stocks.length > 0 ? (stocks.find(s => s.symbol === 'AAPL') || stocks[0]) : null);
   const setSelectedStock = (stock) => {
-    setSelectedStockId(stock ? stock._id : null);
+    const id = stock ? stock._id : null;
+    setSelectedStockId(id);
+    if (id) {
+      localStorage.setItem('selectedStockId', id);
+    } else {
+      localStorage.removeItem('selectedStockId');
+    }
   };
   const [tradeType, setTradeType] = useState('BUY');
   const [tradeQty, setTradeQty] = useState(1);
   const [tradeError, setTradeError] = useState('');
   const [tradeSuccess, setTradeSuccess] = useState('');
+
+  const emailRegex = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
+
+  const getLoginErrors = () => {
+    const errs = {};
+    if (!email) {
+      errs.email = 'Email is required';
+    } else if (!emailRegex.test(email)) {
+      errs.email = 'Please enter a valid email address';
+    }
+    if (!password) {
+      errs.password = 'Password is required';
+    }
+    return errs;
+  };
+
+  const getRegisterErrors = () => {
+    const errs = {};
+    if (!name) {
+      errs.name = 'Full Name is required';
+    }
+    if (!email) {
+      errs.email = 'Email is required';
+    } else if (!emailRegex.test(email)) {
+      errs.email = 'Please enter a valid email address';
+    }
+    if (!password) {
+      errs.password = 'Password is required';
+    } else if (password.length < 6) {
+      errs.password = 'Password must be at least 6 characters';
+    }
+    if (!confirmPassword) {
+      errs.confirmPassword = 'Confirm Password is required';
+    } else if (password !== confirmPassword) {
+      errs.confirmPassword = 'Passwords do not match';
+    }
+    return errs;
+  };
+
+  const getTradeErrors = () => {
+    const errs = {};
+    if (!selectedStock) {
+      errs.stock = 'Stock must be selected';
+    }
+    const qtyStr = String(tradeQty).trim();
+    if (!qtyStr) {
+      errs.quantity = 'Quantity is required';
+    } else {
+      const qtyNum = Number(qtyStr);
+      if (isNaN(qtyNum)) {
+        errs.quantity = 'Quantity must be a numeric value';
+      } else if (qtyNum <= 0) {
+        errs.quantity = 'Quantity must be a positive number';
+      } else if (!Number.isInteger(qtyNum)) {
+        errs.quantity = 'Quantity must be a whole number';
+      }
+    }
+    return errs;
+  };
+
+  const loginErrors = getLoginErrors();
+  const registerErrors = getRegisterErrors();
+  const tradeErrors = getTradeErrors();
+
+  const isLoginInvalid = Object.keys(loginErrors).length > 0;
+  const isRegisterInvalid = Object.keys(registerErrors).length > 0;
+  const isSubmitDisabled = authTab === 'login' ? isLoginInvalid : isRegisterInvalid;
+
+  const handleBlur = (field) => {
+    setTouched((prev) => ({ ...prev, [field]: true }));
+  };
+
+  const handleTabSwitch = (tab) => {
+    setAuthTab(tab);
+    setAuthError('');
+    setAuthSuccess('');
+    setName('');
+    setEmail('');
+    setPassword('');
+    setConfirmPassword('');
+    setTouched({});
+  };
 
   // Navigation / Mode state
   const [adminMode, setAdminMode] = useState(false);
@@ -140,6 +235,96 @@ function App() {
   // Canvas refs for charts
   const canvasRef = useRef(null);
   const analyticsCanvasRef = useRef(null);
+
+  // Helper fetch configs
+  const getAuthHeader = () => ({
+    'Content-Type': 'application/json',
+    Authorization: `Bearer ${token}`,
+  });
+
+  const fetchUserProfile = async () => {
+    try {
+      const res = await fetch(`${API_BASE}/auth/profile`, {
+        headers: getAuthHeader(),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setUser(data);
+      } else {
+        // Token might be expired
+        setToken('');
+      }
+    } catch (err) {
+      console.error(err);
+      setToken('');
+    }
+  };
+
+  const fetchNews = async () => {
+    try {
+      const res = await fetch(`${API_BASE}/news`);
+      if (res.ok) {
+        const data = await res.json();
+        setNews(data);
+      }
+    } catch (err) {
+      console.error('Error fetching financial news feed:', err);
+    }
+  };
+
+  const fetchStocks = async () => {
+    try {
+      const res = await fetch(`${API_BASE}/stocks`);
+      if (res.ok) {
+        const data = await res.json();
+        setStocks(data);
+      }
+    } catch (err) {
+      console.error('Error fetching stocks:', err);
+    }
+  };
+
+  const fetchPortfolio = async () => {
+    try {
+      const res = await fetch(`${API_BASE}/portfolio`, {
+        headers: getAuthHeader(),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setPortfolio(data);
+      }
+    } catch (err) {
+      console.error('Error fetching portfolio:', err);
+    }
+  };
+
+  const fetchTransactions = async () => {
+    try {
+      const res = await fetch(`${API_BASE}/transactions`, {
+        headers: getAuthHeader(),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setTransactions(data);
+      }
+    } catch (err) {
+      console.error('Error fetching transactions:', err);
+    }
+  };
+
+  const fetchAllTransactions = async () => {
+    try {
+      const res = await fetch(`${API_BASE}/transactions/all`, {
+        headers: getAuthHeader(),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setAllTransactions(data);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   // Load User Profile on token change
   useEffect(() => {
@@ -258,100 +443,24 @@ function App() {
     setPrevStocks(pricesMap);
   }, [stocks]);
 
-  // Helper fetch configs
-  const getAuthHeader = () => ({
-    'Content-Type': 'application/json',
-    Authorization: `Bearer ${token}`,
-  });
-
-  const fetchUserProfile = async () => {
-    try {
-      const res = await fetch(`${API_BASE}/auth/profile`, {
-        headers: getAuthHeader(),
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setUser(data);
-      } else {
-        // Token might be expired
-        setToken('');
-      }
-    } catch (err) {
-      console.error(err);
-      setToken('');
-    }
-  };
-
-  const fetchNews = async () => {
-    try {
-      const res = await fetch(`${API_BASE}/news`);
-      if (res.ok) {
-        const data = await res.json();
-        setNews(data);
-      }
-    } catch (err) {
-      console.error('Error fetching financial news feed:', err);
-    }
-  };
-
-  const fetchStocks = async () => {
-    try {
-      const res = await fetch(`${API_BASE}/stocks`);
-      if (res.ok) {
-        const data = await res.json();
-        setStocks(data);
-      }
-    } catch (err) {
-      console.error('Error fetching stocks:', err);
-    }
-  };
-
-  const fetchPortfolio = async () => {
-    try {
-      const res = await fetch(`${API_BASE}/portfolio`, {
-        headers: getAuthHeader(),
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setPortfolio(data);
-      }
-    } catch (err) {
-      console.error('Error fetching portfolio:', err);
-    }
-  };
-
-  const fetchTransactions = async () => {
-    try {
-      const res = await fetch(`${API_BASE}/transactions`, {
-        headers: getAuthHeader(),
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setTransactions(data);
-      }
-    } catch (err) {
-      console.error('Error fetching transactions:', err);
-    }
-  };
-
-  const fetchAllTransactions = async () => {
-    try {
-      const res = await fetch(`${API_BASE}/transactions/all`, {
-        headers: getAuthHeader(),
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setAllTransactions(data);
-      }
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
   // Auth Operations
   const handleAuthSubmit = async (e) => {
     e.preventDefault();
     setAuthError('');
+    setAuthSuccess('');
+
+    // Pre-submission client-side validation check
+    const currentErrors = authTab === 'login' ? getLoginErrors() : getRegisterErrors();
+    if (Object.keys(currentErrors).length > 0) {
+      // Mark all relevant fields as touched
+      const allTouched = {};
+      if (authTab === 'register') allTouched.name = true;
+      allTouched.email = true;
+      allTouched.password = true;
+      if (authTab === 'register') allTouched.confirmPassword = true;
+      setTouched(allTouched);
+      return;
+    }
 
     const url = authTab === 'login' ? `${API_BASE}/auth/login` : `${API_BASE}/auth/register`;
     const bodyObj = authTab === 'login' 
@@ -367,12 +476,27 @@ function App() {
       const data = await res.json();
 
       if (res.ok) {
-        setToken(data.token);
-        // Clear fields
-        setName('');
-        setEmail('');
-        setPassword('');
-        setConfirmPassword('');
+        if (authTab === 'register') {
+          setAuthSuccess('Registration successful! Redirecting to login terminal...');
+          // Clear registration fields
+          setName('');
+          setEmail('');
+          setPassword('');
+          setConfirmPassword('');
+          setTouched({});
+          setTimeout(() => {
+            setAuthTab('login');
+            setAuthSuccess('');
+          }, 2000);
+        } else {
+          setToken(data.token);
+          // Clear fields
+          setName('');
+          setEmail('');
+          setPassword('');
+          setConfirmPassword('');
+          setTouched({});
+        }
       } else {
         setAuthError(data.message || 'Authentication failed');
       }
@@ -385,6 +509,8 @@ function App() {
   const handleLogout = () => {
     setToken('');
     setAdminMode(false);
+    setSelectedStockId(null);
+    localStorage.removeItem('selectedStockId');
   };
 
   // Trading Operations
@@ -393,8 +519,10 @@ function App() {
     setTradeError('');
     setTradeSuccess('');
 
-    if (tradeQty <= 0) {
-      setTradeError('Quantity must be greater than zero');
+    // Pre-submission client-side validation check
+    const currentTradeErrors = getTradeErrors();
+    if (Object.keys(currentTradeErrors).length > 0) {
+      setTradeError(currentTradeErrors.quantity || currentTradeErrors.stock || 'Invalid order data');
       return;
     }
 
@@ -490,6 +618,9 @@ function App() {
       });
       if (res.ok) {
         fetchStocks();
+        if (selectedStockId === id) {
+          setSelectedStock(null);
+        }
       } else {
         const data = await res.json();
         alert(data.message || 'Failed to delete stock');
@@ -513,8 +644,8 @@ function App() {
 
   // Format Helper
   const formatCur = (val) => {
-    if (val === undefined || val === null) return '$0.00';
-    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(val);
+    if (val === undefined || val === null) return '₹0.00';
+    return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(val);
   };
 
   // If not authenticated, render Login/Register
@@ -529,13 +660,13 @@ function App() {
 
           <div className="auth-tabs">
             <button
-              onClick={() => { setAuthTab('login'); setAuthError(''); }}
+              onClick={() => handleTabSwitch('login')}
               className={`auth-tab-btn ${authTab === 'login' ? 'active' : ''}`}
             >
               Sign In
             </button>
             <button
-              onClick={() => { setAuthTab('register'); setAuthError(''); }}
+              onClick={() => handleTabSwitch('register')}
               className={`auth-tab-btn ${authTab === 'register' ? 'active' : ''}`}
             >
               Join Terminal
@@ -543,6 +674,24 @@ function App() {
           </div>
 
           {authError && <div className="auth-error">{authError}</div>}
+          {authSuccess && (
+            <div
+              className="auth-success"
+              style={{
+                background: 'var(--color-success-bg)',
+                border: '1px solid rgba(16, 185, 129, 0.3)',
+                color: 'var(--color-success)',
+                borderRadius: 'var(--border-radius-sm)',
+                padding: '14px',
+                fontSize: '13px',
+                marginBottom: '24px',
+                textAlign: 'center',
+                fontWeight: '500',
+              }}
+            >
+              {authSuccess}
+            </div>
+          )}
 
           <form onSubmit={handleAuthSubmit}>
             {authTab === 'register' && (
@@ -553,10 +702,19 @@ function App() {
                   required
                   placeholder="e.g. John Doe"
                   value={name}
-                  onChange={(e) => setName(e.target.value)}
+                  onChange={(e) => {
+                    setName(e.target.value);
+                    setTouched((prev) => ({ ...prev, name: true }));
+                  }}
+                  onBlur={() => handleBlur('name')}
                   className="form-input"
                   autoComplete="off"
                 />
+                {touched.name && registerErrors.name && (
+                  <span className="field-error" style={{ color: 'var(--color-danger)', fontSize: '11px', marginTop: '4px', display: 'block' }}>
+                    {registerErrors.name}
+                  </span>
+                )}
               </div>
             )}
 
@@ -567,10 +725,25 @@ function App() {
                 required
                 placeholder="you@terminal.com"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  setTouched((prev) => ({ ...prev, email: true }));
+                }}
+                onBlur={() => handleBlur('email')}
                 className="form-input"
                 autoComplete="email"
               />
+              {authTab === 'login'
+                ? touched.email && loginErrors.email && (
+                    <span className="field-error" style={{ color: 'var(--color-danger)', fontSize: '11px', marginTop: '4px', display: 'block' }}>
+                      {loginErrors.email}
+                    </span>
+                  )
+                : touched.email && registerErrors.email && (
+                    <span className="field-error" style={{ color: 'var(--color-danger)', fontSize: '11px', marginTop: '4px', display: 'block' }}>
+                      {registerErrors.email}
+                    </span>
+                  )}
             </div>
 
             <div className="form-group">
@@ -580,10 +753,25 @@ function App() {
                 required
                 placeholder="••••••••"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                  setTouched((prev) => ({ ...prev, password: true }));
+                }}
+                onBlur={() => handleBlur('password')}
                 className="form-input"
                 autoComplete="current-password"
               />
+              {authTab === 'login'
+                ? touched.password && loginErrors.password && (
+                    <span className="field-error" style={{ color: 'var(--color-danger)', fontSize: '11px', marginTop: '4px', display: 'block' }}>
+                      {loginErrors.password}
+                    </span>
+                  )
+                : touched.password && registerErrors.password && (
+                    <span className="field-error" style={{ color: 'var(--color-danger)', fontSize: '11px', marginTop: '4px', display: 'block' }}>
+                      {registerErrors.password}
+                    </span>
+                  )}
             </div>
 
             {authTab === 'register' && (
@@ -594,14 +782,35 @@ function App() {
                   required
                   placeholder="••••••••"
                   value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  onChange={(e) => {
+                    setConfirmPassword(e.target.value);
+                    setTouched((prev) => ({ ...prev, confirmPassword: true }));
+                  }}
+                  onBlur={() => handleBlur('confirmPassword')}
                   className="form-input"
                   autoComplete="new-password"
                 />
+                {touched.confirmPassword && registerErrors.confirmPassword && (
+                  <span className="field-error" style={{ color: 'var(--color-danger)', fontSize: '11px', marginTop: '4px', display: 'block' }}>
+                    {registerErrors.confirmPassword}
+                  </span>
+                )}
               </div>
             )}
 
-            <button type="submit" className="btn btn-primary" style={{ marginTop: '10px' }}>
+            <button
+              type="submit"
+              disabled={isSubmitDisabled}
+              className="btn btn-primary"
+              style={{
+                marginTop: '10px',
+                background: isSubmitDisabled ? 'var(--text-muted)' : 'var(--color-accent)',
+                color: isSubmitDisabled ? 'var(--text-secondary)' : '#000',
+                cursor: isSubmitDisabled ? 'not-allowed' : 'pointer',
+                boxShadow: isSubmitDisabled ? 'none' : '0 4px 12px rgba(255, 140, 0, 0.25)',
+                opacity: isSubmitDisabled ? 0.6 : 1,
+              }}
+            >
               {authTab === 'login' ? 'Initialize Session' : 'Establish Account'}
             </button>
           </form>
@@ -611,7 +820,6 @@ function App() {
   }
 
   // Loaded calculations
-  const netWorth = portfolio ? portfolio.availableBalance + portfolio.currentValue : 0;
   const overallPL = portfolio ? portfolio.profitLoss : 0;
   const totalInvested = portfolio ? portfolio.totalInvestment : 0;
   const overallPLPercent = totalInvested > 0 ? (overallPL / totalInvested) * 100 : 0;
@@ -1260,16 +1468,26 @@ function App() {
                   </span>
                 </div>
                 
-                {/* Simplified portfolio metrics cards */}
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
-                  <div style={{ background: 'rgba(255,255,255,0.01)', border: '1px solid rgba(255,255,255,0.03)', padding: '12px', borderRadius: '8px' }}>
-                    <div style={{ fontSize: '10px', color: 'var(--text-secondary)', textTransform: 'uppercase', fontWeight: '700' }}>Net Portfolio Value</div>
-                    <div style={{ fontSize: '18px', fontWeight: '800', color: '#fff', marginTop: '4px' }}>{formatCur(netWorth)}</div>
+                {/* Portfolio summary cards */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '16px', marginBottom: '16px' }}>
+                  <div style={{ background: 'rgba(255,255,255,0.01)', border: '1px solid rgba(255, 140, 0, 0.12)', padding: '12px', borderRadius: '8px' }}>
+                    <div style={{ fontSize: '10px', color: 'var(--text-secondary)', textTransform: 'uppercase', fontWeight: '700' }}>Total Investment</div>
+                    <div style={{ fontSize: '18px', fontWeight: '800', color: '#fff', marginTop: '4px', fontFamily: 'var(--font-mono)' }}>{formatCur(totalInvested)}</div>
                   </div>
-                  <div style={{ background: overallPL >= 0 ? 'var(--color-success-bg)' : 'var(--color-danger-bg)', border: '1px solid rgba(255,255,255,0.03)', padding: '12px', borderRadius: '8px' }}>
-                    <div style={{ fontSize: '10px', color: 'var(--text-secondary)', textTransform: 'uppercase', fontWeight: '700' }}>Total Return (PL)</div>
-                    <div style={{ fontSize: '18px', fontWeight: '800', color: overallPL >= 0 ? 'var(--color-success)' : 'var(--color-danger)', marginTop: '4px' }}>
-                      {overallPL >= 0 ? '+' : ''}{formatCur(overallPL)} ({overallPLPercent.toFixed(1)}%)
+                  <div style={{ background: 'rgba(255,255,255,0.01)', border: '1px solid rgba(255, 140, 0, 0.12)', padding: '12px', borderRadius: '8px' }}>
+                    <div style={{ fontSize: '10px', color: 'var(--text-secondary)', textTransform: 'uppercase', fontWeight: '700' }}>Current Value</div>
+                    <div style={{ fontSize: '18px', fontWeight: '800', color: '#fff', marginTop: '4px', fontFamily: 'var(--font-mono)' }}>{formatCur(portfolio ? portfolio.currentValue : 0)}</div>
+                  </div>
+                  <div style={{ background: overallPL >= 0 ? 'var(--color-success-bg)' : 'var(--color-danger-bg)', border: '1px solid rgba(255, 140, 0, 0.12)', padding: '12px', borderRadius: '8px' }}>
+                    <div style={{ fontSize: '10px', color: 'var(--text-secondary)', textTransform: 'uppercase', fontWeight: '700' }}>Total P&L</div>
+                    <div style={{ fontSize: '18px', fontWeight: '800', color: overallPL >= 0 ? 'var(--color-success)' : 'var(--color-danger)', marginTop: '4px', fontFamily: 'var(--font-mono)' }}>
+                      {overallPL >= 0 ? '+' : ''}{formatCur(overallPL)}
+                    </div>
+                  </div>
+                  <div style={{ background: overallPL >= 0 ? 'var(--color-success-bg)' : 'var(--color-danger-bg)', border: '1px solid rgba(255, 140, 0, 0.12)', padding: '12px', borderRadius: '8px' }}>
+                    <div style={{ fontSize: '10px', color: 'var(--text-secondary)', textTransform: 'uppercase', fontWeight: '700' }}>P&L Percentage</div>
+                    <div style={{ fontSize: '18px', fontWeight: '800', color: overallPL >= 0 ? 'var(--color-success)' : 'var(--color-danger)', marginTop: '4px', fontFamily: 'var(--font-mono)' }}>
+                      {overallPL >= 0 ? '+' : ''}{overallPLPercent.toFixed(2)}%
                     </div>
                   </div>
                 </div>
@@ -1278,16 +1496,27 @@ function App() {
                   <table className="trading-table">
                     <thead>
                       <tr>
-                        <th>Asset</th>
-                        <th>Shares</th>
-                        <th>Cost Average</th>
-                        <th>Yield</th>
+                        <th>Stock Name</th>
+                        <th>Buy Price</th>
+                        <th>Current Price</th>
+                        <th>Quantity</th>
+                        <th>Total P&L</th>
                       </tr>
                     </thead>
                     <tbody>
                       {portfolio?.holdings.map((holding) => {
-                        const isGain = holding.profitLoss >= 0;
                         const stockObj = stocks.find((s) => s._id === holding.stockId);
+                        const currentPrice = stockObj ? stockObj.currentPrice : (holding.currentPrice || holding.averageBuyPrice);
+                        const buyPrice = holding.averageBuyPrice;
+                        const qty = holding.quantity;
+                        const plVal = (currentPrice - buyPrice) * qty;
+                        const plPercent = buyPrice > 0 ? ((currentPrice - buyPrice) / buyPrice) * 100 : 0;
+                        const isProfit = plVal >= 0;
+
+                        const formattedPLVal = formatCur(plVal);
+                        const formattedPercent = `${isProfit ? '+' : ''}${plPercent.toFixed(1)}%`;
+                        const formattedPL = `${isProfit ? '+' : ''}${formattedPLVal} (${formattedPercent})`;
+
                         return (
                           <tr
                             key={holding._id}
@@ -1296,19 +1525,26 @@ function App() {
                             }}
                           >
                             <td>
-                              <div className="symbol-badge">{holding.symbol}</div>
+                              <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                <span className="symbol-badge" style={{ alignSelf: 'flex-start' }}>{holding.symbol}</span>
+                                <span style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: '4px' }}>
+                                  {stockObj ? stockObj.companyName : holding.companyName}
+                                </span>
+                              </div>
                             </td>
-                            <td style={{ fontWeight: '600' }}>{holding.quantity}</td>
-                            <td>{formatCur(holding.averageBuyPrice)}</td>
-                            <td style={{ fontWeight: '700', color: isGain ? 'var(--color-success)' : 'var(--color-danger)' }}>
-                              {isGain ? '+' : ''}{formatCur(holding.profitLoss)}
+                            <td style={{ fontFamily: 'var(--font-mono)' }}>{formatCur(buyPrice)}</td>
+                            <td style={{ fontFamily: 'var(--font-mono)' }}>{formatCur(currentPrice)}</td>
+                            <td style={{ fontWeight: '600', fontFamily: 'var(--font-mono)' }}>{qty}</td>
+                            <td style={{ fontWeight: '700', color: isProfit ? 'var(--color-success)' : 'var(--color-danger)', whiteSpace: 'nowrap' }}>
+                              <span style={{ marginRight: '4px' }}>{isProfit ? '▲' : '▼'}</span>
+                              {formattedPL}
                             </td>
                           </tr>
                         );
                       })}
                       {(!portfolio || portfolio.holdings.length === 0) && (
                         <tr>
-                          <td colSpan="4" style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '20px' }}>
+                          <td colSpan="5" style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '20px' }}>
                             No investments owned yet. Select an asset to purchase.
                           </td>
                         </tr>
@@ -1852,13 +2088,17 @@ function App() {
                     </div>
                     <input
                       type="number"
-                      min="1"
                       required
                       value={tradeQty}
-                      onChange={(e) => setTradeQty(Math.max(1, parseInt(e.target.value) || 0))}
+                      onChange={(e) => setTradeQty(e.target.value)}
                       className="form-input"
                       style={{ fontFamily: 'var(--font-mono)', padding: '10px 14px' }}
                     />
+                    {tradeErrors.quantity && (
+                      <span className="field-error" style={{ color: 'var(--color-danger)', fontSize: '11px', marginTop: '4px', display: 'block' }}>
+                        {tradeErrors.quantity}
+                      </span>
+                    )}
                   </div>
 
                   <div className="trade-calc-row">
@@ -1869,22 +2109,28 @@ function App() {
                       className="trade-calc-val"
                       style={{ color: tradeType === 'BUY' ? 'var(--color-accent)' : 'var(--color-success)' }}
                     >
-                      {formatCur(selectedStock.currentPrice * tradeQty)}
+                      {formatCur(selectedStock.currentPrice * (Number(tradeQty) || 0))}
                     </span>
                   </div>
 
                   <button
                     type="submit"
+                    disabled={Object.keys(tradeErrors).length > 0}
                     className="btn"
                     style={{
-                      background: tradeType === 'BUY' ? 'var(--color-success)' : 'var(--color-danger)',
+                      background: Object.keys(tradeErrors).length > 0
+                        ? 'var(--text-muted)'
+                        : (tradeType === 'BUY' ? 'var(--color-success)' : 'var(--color-danger)'),
                       color: '#000',
                       fontWeight: '800',
                       marginTop: '20px',
-                      boxShadow:
-                        tradeType === 'BUY'
-                          ? '0 4px 12px rgba(16, 185, 129, 0.2)'
-                          : '0 4px 12px rgba(239, 68, 68, 0.2)',
+                      cursor: Object.keys(tradeErrors).length > 0 ? 'not-allowed' : 'pointer',
+                      opacity: Object.keys(tradeErrors).length > 0 ? 0.6 : 1,
+                      boxShadow: Object.keys(tradeErrors).length > 0
+                        ? 'none'
+                        : (tradeType === 'BUY'
+                            ? '0 4px 12px rgba(16, 185, 129, 0.2)'
+                            : '0 4px 12px rgba(239, 68, 68, 0.2)'),
                     }}
                   >
                     Execute {tradeType} order

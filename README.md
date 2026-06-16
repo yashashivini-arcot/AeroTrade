@@ -95,6 +95,11 @@ npm run seed
 
 ---
 
-## 🐞 Recent Fixes
-* **Selection State Persistence**: Refactored the selected stock state to prevent the selection from resetting to the top stock on automatic background quote refreshes.
-* **Linter Warnings resolved**: Cleaned up function declaration scopes and exception handling parameters to keep the build clean.
+## 🛠️ Recent Platform Enhancements (June 2026)
+* **Secure Auth with bcrypt.js**: Configured secure password hashing before storage and `bcrypt.compare()` checks upon login.
+* **Streamlined Registration Flow**: Fixes the registration workflow with a success notification banner and automatic redirection to the Sign-in tab after 2 seconds.
+* **Client-Side Form Validation**: Added inline visual error messages below inputs on Login, Registration, and Buy/Sell forms; execute buttons are automatically disabled when inputs are invalid.
+* **P&L Holdings Table**: Updated holdings list to display Stock Name, Buy Price, Current Price, Quantity, and P&L color-coded in green/red using Indian Rupees (`₹`) with arrow icons (`▲` / `▼`).
+* **Portfolio Summary Cards**: Replaced traditional indicators with 4 comprehensive cards: Total Investment, Current Portfolio Value, Total P&L, and P&L Percentage.
+* **Selected Stock State Persistence**: Saved the active ticker symbol inside `localStorage` to prevent selection resetting during periodic background refreshes and page reloads.
+* **Zero ESLint Warnings**: Reordered scoping of asynchronous fetch modules and parameters to guarantee completely clean, warning-free compilations.
