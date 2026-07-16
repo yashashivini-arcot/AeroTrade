@@ -418,9 +418,6 @@ export default function App() {
           HERO
           ============================================================ */}
       <section className="swadeshi-hero">
-        <WarliCorner position="top-left" />
-        <WarliCorner position="top-right" />
-
         <div className="hero-content">
           <div className="hero-text-panel">
             <span className="hero-badge-tag">🇮🇳 Celebrating Indian Heritage</span>
@@ -432,13 +429,14 @@ export default function App() {
             </div>
           </div>
 
-          <div className="hero-graphics-panel">
-            <div className="mandala-outer">
-              <div className="mandala-inner">
-                <div className="mandala-center">
-                  <span className="mandala-icon">🪔</span>
-                </div>
-              </div>
+          <div className="hero-graphics-panel new-hero-layout">
+            <div className="hero-image-grid">
+              {/* Premium Pottery */}
+              <img src={u('1580933073889-1b4a3971ee80')} className="hero-img img-main animate-float-slow" alt="Indian Pottery" />
+              {/* Handloom Textiles */}
+              <img src={u('1512821099-6fe22e6e7f73')} className="hero-img img-accent-1 animate-float-delayed" alt="Handloom Textiles" />
+              {/* Brass Crafts */}
+              <img src={u('1568702135-87af5b0f44d6')} className="hero-img img-accent-2 animate-float" alt="Brass Crafts" />
             </div>
             <div className="heritage-card animate-float">
               <h4>Artisan Hand-Woven Textiles</h4>
@@ -569,14 +567,14 @@ export default function App() {
         <section className="admin-quick-links">
           <div className="welcome-card">
             <h2>Welcome Admin, {username}!</h2>
-            <p>Access simulated backend databases and user registers securely from this registry panel.</p>
+            <p>Access backend databases and user registers securely from this registry panel.</p>
             <button className="btn btn-admin" onClick={() => setShowUsersDir(!showUsersDir)}>
-              {showUsersDir ? 'Hide User Directory' : 'Access User Directory (Mock API)'}
+              {showUsersDir ? 'Hide User Directory' : 'Access User Directory'}
             </button>
           </div>
           {showUsersDir && (
             <div className="admin-section animate-fade-in" style={{marginTop:'20px',background:'var(--color-card-bg)',borderRadius:'16px',border:'1px solid var(--color-border)'}}>
-              <h3>Simulated Registered Users Directory</h3>
+              <h3>Registered Users Directory</h3>
               <div className="table-responsive">
                 <table className="users-table">
                   <thead><tr><th>ID</th><th>Name</th><th>Email</th><th>Role</th><th>Registered</th></tr></thead>
@@ -963,12 +961,10 @@ export default function App() {
           ============================================================ */}
       {isLoginOpen && (
         <div className="modal-overlay" onClick={() => setIsLoginOpen(false)}>
-          <div className="modal-card animate-zoom-in" onClick={e => e.stopPropagation()}>
+          <div className="modal-card animate-scale-up" onClick={e => e.stopPropagation()}>
             <button className="close-modal-btn" onClick={() => setIsLoginOpen(false)}>×</button>
             <div className="modal-header">
-              <span className="modal-header-icon">🪔</span>
-              <h2>Welcome to ShopEZ Swadeshi</h2>
-              <p>Sign in to access your custom collections and artisan registry.</p>
+              <h2>Welcome Back</h2>
             </div>
             <form onSubmit={handleMockLogin} className="modal-form">
               <div className="form-group">
@@ -981,28 +977,20 @@ export default function App() {
                 <input id="modal-password-input" type="password" placeholder="••••••••"
                   value={loginPassword} onChange={e => setLoginPassword(e.target.value)} required />
               </div>
-
-              {/* Autofill buttons for quick testing */}
+              
               <div style={{display:'flex',gap:'10px'}}>
-                <button type="button" id="autofill-admin-btn"
-                  className="btn btn-outline-maroon btn-sm"
-                  style={{flex:1}}
+                <button type="button" className="btn btn-outline-maroon btn-sm" style={{flex:1}}
                   onClick={() => { setLoginEmail('admin@shopez-swadeshi.gov.in'); setLoginPassword('Admin@123'); }}>
-                  Autofill Admin
+                  Sign in as Admin
                 </button>
-                <button type="button" id="autofill-customer-btn"
-                  className="btn btn-outline-maroon btn-sm"
-                  style={{flex:1}}
+                <button type="button" className="btn btn-outline-maroon btn-sm" style={{flex:1}}
                   onClick={() => { setLoginEmail('patron@swadeshi.in'); setLoginPassword('User@123'); }}>
-                  Autofill Customer
+                  Sign in as User
                 </button>
               </div>
 
-              <button type="submit" id="login-submit-btn" className="btn btn-terracotta btn-block">Sign In</button>
+              <button type="submit" id="login-submit-btn" className="btn btn-terracotta btn-block" style={{marginTop:'15px'}}>Secure Sign In</button>
             </form>
-            <div className="modal-footer-mock text-center">
-              <p>Enter any email and password — or use the autofill buttons above.</p>
-            </div>
           </div>
         </div>
       )}

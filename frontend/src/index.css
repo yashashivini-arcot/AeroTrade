@@ -396,38 +396,56 @@ section {
   position: relative;
 }
 
-.mandala-outer {
-  width: 300px;
-  height: 300px;
-  border-radius: 50%;
-  background: conic-gradient(from 0deg, var(--color-primary-accent), var(--color-secondary-accent), var(--color-cta), var(--color-primary-accent));
-  animation: spin-slow 30s linear infinite;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.hero-image-grid {
+  position: relative;
+  width: 450px;
+  height: 450px;
 }
 
-.mandala-inner {
-  width: 260px;
-  height: 260px;
-  border-radius: 50%;
-  background: var(--color-bg-primary);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.hero-img {
+  position: absolute;
+  border-radius: var(--border-radius-lg);
+  object-fit: cover;
+  box-shadow: var(--shadow-lg);
+  border: 1px solid var(--color-border);
 }
 
-.mandala-center {
-  width: 120px;
-  height: 120px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, var(--color-primary-accent), var(--color-cta));
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.img-main {
+  width: 320px;
+  height: 420px;
+  top: 15px;
+  left: 20px;
+  z-index: 2;
 }
 
-.mandala-icon { font-size: 48px; }
+.img-accent-1 {
+  width: 220px;
+  height: 280px;
+  top: -20px;
+  right: -10px;
+  z-index: 1;
+}
+
+.img-accent-2 {
+  width: 240px;
+  height: 200px;
+  bottom: -30px;
+  right: 10px;
+  z-index: 3;
+}
+
+.animate-float-slow {
+  animation: float-y 8s ease-in-out infinite;
+}
+
+.animate-float-delayed {
+  animation: float-y 6s ease-in-out infinite 2s;
+}
+
+@keyframes float-y {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-15px); }
+}
 
 .heritage-card {
   position: absolute;
