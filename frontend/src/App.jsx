@@ -432,11 +432,11 @@ export default function App() {
           <div className="hero-graphics-panel new-hero-layout">
             <div className="hero-image-grid">
               {/* Premium Pottery */}
-              <img src={u('1580933073889-1b4a3971ee80')} className="hero-img img-main animate-float-slow" alt="Indian Pottery" />
+              <img src="/hero-pottery.png" className="hero-img img-main animate-float-slow" alt="Indian Pottery" />
               {/* Handloom Textiles */}
-              <img src={u('1512821099-6fe22e6e7f73')} className="hero-img img-accent-1 animate-float-delayed" alt="Handloom Textiles" />
+              <img src="/hero-textiles.png" className="hero-img img-accent-1 animate-float-delayed" alt="Handloom Textiles" />
               {/* Brass Crafts */}
-              <img src={u('1568702135-87af5b0f44d6')} className="hero-img img-accent-2 animate-float" alt="Brass Crafts" />
+              <img src="/hero-brass.png" className="hero-img img-accent-2 animate-float" alt="Brass Crafts" />
             </div>
             <div className="heritage-card animate-float">
               <h4>Artisan Hand-Woven Textiles</h4>
